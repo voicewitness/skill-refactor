@@ -1,0 +1,113 @@
+{
+  "id": "gemini",
+  "name": "Google Gemini API function calling (generateContent)",
+  "tool_definition": {
+    "example": {
+      "tools": [
+        {
+          "functionDeclarations": [
+            {
+              "name": "get_weather",
+              "description": "Get current weather for a location",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "location": {
+                    "type": "string",
+                    "description": "City name"
+                  }
+                },
+                "required": [
+                  "location"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "fields": {
+      "name": "required; a-z, A-Z, 0-9, underscores, colons, dots, dashes; max 128",
+      "description": "brief description of the function",
+      "parameters": "Schema object (subset of OpenAPI 3.0.3); mutually exclusive with parametersJsonSchema",
+      "parametersJsonSchema": "parameters in JSON Schema format; mutually exclusive with parameters",
+      "response / responseJsonSchema": "optional output schema; mutually exclusive pair",
+      "behavior": "UNSPECIFIED | BLOCKING | NON_BLOCKING; only BidiGenerateContent (Live)"
+    }
+  },
+  "tool_call": {
+    "example": {
+      "role": "model",
+      "parts": [
+        {
+          "functionCall": {
+            "id": "call-1",
+            "name": "get_weather",
+            "args": {
+              "location": "Paris"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "tool_result": {
+    "example": {
+      "role": "user",
+      "parts": [
+        {
+          "functionResponse": {
+            "id": "call-1",
+            "name": "get_weather",
+            "response": {
+              "output": {
+                "temperature_c": 18
+              }
+            }
+          }
+        }
+      ]
+    },
+    "error": "FunctionResponse.response is a JSON object; docs: use keys like \"output\"/\"result\" for output, and an \"error\" key to return error details when the call failed. No boolean flag."
+  },
+  "name_rule": "FunctionDeclaration.name: [a-zA-Z0-9_:.-], max 128 (i.e. ^[a-zA-Z0-9_:.-]{1,128}$). Note FunctionCall/FunctionResponse.name doc says only a-z A-Z 0-9 _ - (no colon/dot), max 128 - so stick to ^[a-zA-Z0-9_-]{1,128}$ to be safe.",
+  "schema_rules": [
+    "`parameters` (Schema object) supports only: type (STRING, NUMBER, INTEGER, BOOLEAN, ARRAY, OBJECT, NULL), format, title, description, nullable, enum, items, maxItems, minItems, properties, required, minProperties, maxProperties, minimum, maximum, minLength, maxLength, pattern, example, anyOf, propertyOrdering, default (default is ignored).",
+    "`additionalProperties` is NOT a field of the Schema object (`parameters`); it appears only in a parametersJsonSchema example ('additionalProperties': false). Same for $ref/$defs/allOf/oneOf/const - not in the Schema field list.",
+    "Structured-output JSON Schema page: supported keywords properties/required/additionalProperties (bool or schema), enum/format, minimum/maximum, items/prefixItems/minItems/maxItems; minProperties/maxProperties/minLength/maxLength/uniqueItems/contains/minContains/maxContains are accepted but stripped/ignored (not enforced).",
+    "Function-calling guide: only a subset of the OpenAPI schema is supported; overly complex schemas -> 400 INVALID_ARGUMENT; very large/deep schemas may be rejected in 'any' mode; best practice keeps 10-20 active tools.",
+    "Content.role must be 'user' or 'model'."
+  ],
+  "sources": [
+    {
+      "url": "https://aistudio.google.com/api-reference/caching",
+      "what": "FunctionDeclaration fields + name rule, Schema field list, FunctionCall/FunctionResponse fields, error key note, Part/Content role (redirected from ai.google.dev/api/caching)"
+    },
+    {
+      "url": "https://aistudio.google.com/docs/function-calling",
+      "what": "declaration shape, OpenAPI subset statement, complexity/400 notes, tool-count best practice (redirected from ai.google.dev/gemini-api/docs/function-calling)"
+    },
+    {
+      "url": "https://aistudio.google.com/docs/structured-output",
+      "what": "JSON Schema keyword support and stripped keywords (structured output; applicability to parametersJsonSchema not stated)"
+    }
+  ],
+  "checked_at": "2026-11-05",
+  "uncertain": [
+    "Whether the structured-output JSON Schema keyword list applies to parametersJsonSchema is NOT stated by Google; third-party SDK docs claim parametersJsonSchema accepts broader JSON Schema.",
+    "Whether lowercase type names ('object','string') are accepted in `parameters` vs required uppercase enum (OBJECT, STRING) - examples in guide use lowercase, reference enum is uppercase; not explicitly reconciled.",
+    "The functionCall/functionResponse JSON examples above are constructed from the reference field lists; the current function-calling guide shows Interactions API 'function_call'/'function_result' steps instead of generateContent parts.",
+    "Exact upstream behavior when additionalProperties is sent inside `parameters` (error vs ignored) not confirmed."
+  ],
+  "check": {
+    "name": "^[a-zA-Z0-9_-]{1,128}$",
+    "forbid_keys": [
+      "additionalProperties",
+      "$ref",
+      "allOf",
+      "oneOf",
+      "const"
+    ],
+    "why": "机器检查用：name 是导出后工具名要满足的正则（取各处文档里最严的那个），forbid_keys 是参数 schema 里不能出现的关键字；依据见 name_rule / schema_rules / sources"
+  }
+}

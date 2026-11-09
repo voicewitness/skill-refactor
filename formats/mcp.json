@@ -1,0 +1,92 @@
+{
+  "id": "mcp",
+  "name": "Model Context Protocol tools (spec revision 2026-07-28, 'latest'; 2025-06-18 also checked)",
+  "tool_definition": {
+    "example": {
+      "name": "get_weather",
+      "title": "Weather Information Provider",
+      "description": "Get current weather information for a location",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "City name or zip code"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      }
+    },
+    "fields": {
+      "name": "required; unique identifier (see name_rule)",
+      "title": "optional; human-readable display name",
+      "description": "human-readable description",
+      "icons": "optional array of {src, mimeType, sizes} (2026-07-28)",
+      "inputSchema": "required; JSON Schema object, MUST NOT be null; defaults to JSON Schema 2020-12 when no $schema; no-param tools: {\"type\":\"object\",\"additionalProperties\":false} (recommended) or {\"type\":\"object\"}; properties MAY carry x-mcp-header",
+      "outputSchema": "optional JSON Schema for structuredContent; if given, server MUST conform, client SHOULD validate",
+      "annotations": "optional behavior hints; clients MUST treat as untrusted unless server is trusted"
+    }
+  },
+  "tool_call": {
+    "example": {
+      "jsonrpc": "2.0",
+      "id": 2,
+      "method": "tools/call",
+      "params": {
+        "name": "get_weather",
+        "arguments": {
+          "location": "New York"
+        }
+      }
+    }
+  },
+  "tool_result": {
+    "example": {
+      "jsonrpc": "2.0",
+      "id": 2,
+      "result": {
+        "resultType": "complete",
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"temperature\": 22.5}"
+          }
+        ],
+        "structuredContent": {
+          "temperature": 22.5
+        },
+        "isError": false
+      }
+    },
+    "error": "Two mechanisms: (1) protocol errors = JSON-RPC error object (unknown tool, malformed request, server error), e.g. code -32602; (2) tool execution errors = normal result with isError: true and message in content (API failures, input validation errors such as bad date format, business logic errors). Clients SHOULD pass execution errors to the model."
+  },
+  "name_rule": "SHOULD be 1-128 chars, case-sensitive, only A-Z a-z 0-9 _ - . (i.e. ^[A-Za-z0-9_.-]{1,128}$), no spaces/commas, unique within a server (2026-07-28 spec)",
+  "schema_rules": [
+    "content items: text, image (base64 data + mimeType), audio, resource_link, embedded resource; all accept optional annotations.",
+    "structuredContent may be any JSON value (2026-07-28; 2025-06-18 said JSON object) and SHOULD also be serialized into a TextContent block for backwards compatibility.",
+    "2026-07-28 adds resultType ('complete' | 'input_required'), InputRequiredResult for multi round-trip, and requires _meta on every request (protocolVersion/clientInfo/clientCapabilities).",
+    "x-mcp-header only on primitive integer/string/boolean properties statically reachable from root; clients on Streamable HTTP MUST drop tools violating x-mcp-header constraints."
+  ],
+  "sources": [
+    {
+      "url": "https://modelcontextprotocol.io/specification/latest/server/tools",
+      "what": "2026-07-28 Tool fields, name rules, inputSchema rules, result shape, resultType, error handling"
+    },
+    {
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/server/tools",
+      "what": "earlier revision: Tool fields, structuredContent as object, isError, protocol vs execution errors (no name rule there)"
+    }
+  ],
+  "checked_at": "2026-11-05",
+  "uncertain": [
+    "Annotation keys (readOnlyHint, destructiveHint, idempotentHint, openWorldHint, title) are from memory of schema.ts; the tools page only says 'optional properties describing tool behavior'.",
+    "Intermediate revision 2025-11-25 was not fetched; which revision introduced the name rule is unconfirmed."
+  ],
+  "check": {
+    "name": "^[A-Za-z0-9_.-]{1,128}$",
+    "forbid_keys": [],
+    "why": "机器检查用：name 是导出后工具名要满足的正则（取各处文档里最严的那个），forbid_keys 是参数 schema 里不能出现的关键字；依据见 name_rule / schema_rules / sources"
+  }
+}

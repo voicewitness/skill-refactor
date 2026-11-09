@@ -1,0 +1,21 @@
+{
+  "id": "cursor",
+  "name": "Cursor agent hooks",
+  "config": { "project": ".cursor/hooks.json", "user": "~/.cursor/hooks.json",
+    "shape": "{version:1, hooks:{<event>:[{command, matcher?, timeout?, loop_limit?}]}}" },
+  "events": { "before_tool": "preToolUse", "after_tool": "postToolUse", "prompt": "beforeSubmitPrompt", "stop": "stop", "session_start": "sessionStart" },
+  "tools": { "shell": { "names": ["Shell"], "text": "tool_input.command" }, "write": { "names": ["Write"], "text": "tool_input.file_path（文档未给出 Write 的 tool_input 键，按 file_path / path 兜着取）" } },
+  "input_common": ["conversation_id", "generation_id", "hook_event_name", "workspace_roots", "cwd", "tool_name", "tool_input", "tool_use_id"],
+  "decisions": {
+    "deny": "exit 0 + {permission:'deny', user_message, agent_message}；或 exit 2",
+    "remind": "{permission:'allow', agent_message}（agent_message 在 allow 时是否送达模型未写明）",
+    "continue": "stop：{followup_message} 作为下一条用户消息自动提交；输入带 loop_count，缺省上限 5（loop_limit）"
+  },
+  "matcher": "正则",
+  "third_party": "缺省还会加载 .claude/settings(.local).json 与 ~/.claude/settings.json 里的 hook（Bash→Shell、Edit/Write→Write 映射）：同时装 claude-code 与 cursor 两份会在 Cursor 里各跑一次",
+  "env": {},
+  "sources": [ { "url": "https://cursor.com/docs/agent/hooks", "what": "配置位置、hooks.json 形状、事件名、stdin 字段、permission 输出、exit 2、stop followup_message 与 loop_count" },
+               { "url": "https://cursor.com/docs/reference/third-party-hooks", "what": "加载 Claude Code 的 hook、事件与工具名映射、接受 hookSpecificOutput 嵌套格式" } ],
+  "checked_at": "2026-11-05",
+  "uncertain": [ "Write 工具的 tool_input 键名未写明", "preToolUse 的 ask 被 schema 接受但不执行", "allow 时 agent_message 是否进模型上下文未写明" ]
+}

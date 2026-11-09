@@ -1,0 +1,19 @@
+{
+  "id": "claude-code",
+  "name": "Claude Code hooks",
+  "config": { "project": ".claude/settings.json", "project_local": ".claude/settings.local.json", "user": "~/.claude/settings.json",
+    "shape": "{hooks:{<Event>:[{matcher, hooks:[{type:'command', command, timeout}]}]}}" },
+  "events": { "before_tool": "PreToolUse", "after_tool": "PostToolUse", "prompt": "UserPromptSubmit", "stop": "Stop", "session_start": "SessionStart" },
+  "tools": { "shell": { "names": ["Bash"], "text": "tool_input.command" }, "write": { "names": ["Write", "Edit"], "text": "tool_input.file_path" } },
+  "input_common": ["session_id", "transcript_path", "cwd", "hook_event_name", "tool_name", "tool_input", "tool_use_id"],
+  "decisions": {
+    "deny": "exit 0 + {hookSpecificOutput:{hookEventName:'PreToolUse', permissionDecision:'deny', permissionDecisionReason}}；或 exit 2 + stderr",
+    "remind": "{hookSpecificOutput:{hookEventName, additionalContext}}（PreToolUse / PostToolUse / UserPromptSubmit / SessionStart / Stop 支持）",
+    "continue": "Stop：{decision:'block', reason}；输入里的 stop_hook_active 防无限续跑；连续续跑上限 8 次"
+  },
+  "matcher": "只含字母数字 _ - 空格 , | 的是精确名 / 列表（Edit|Write），否则是不锚定的 JS 正则；空 / * 匹配全部",
+  "env": { "project_dir": "CLAUDE_PROJECT_DIR" },
+  "sources": [ { "url": "https://code.claude.com/docs/en/hooks", "what": "配置位置与形状、事件名、stdin 字段、Bash/Write/Edit 的 tool_input 键、permissionDecision、additionalContext、Stop 的 decision block、matcher 语法、CLAUDE_PROJECT_DIR" } ],
+  "checked_at": "2026-11-05",
+  "uncertain": [ "stop_hook_active 在 Stop 输入表里的确切位置来自抓取工具的摘要，不是逐字原文" ]
+}

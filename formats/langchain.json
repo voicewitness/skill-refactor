@@ -1,0 +1,62 @@
+{
+  "id": "langchain",
+  "name": "LangChain (Python, langchain-core) tools / ToolMessage",
+  "tool_definition": {
+    "example": {
+      "python": "@tool(\"lookup_order\", args_schema=OrderLookup)\ndef lookup_order(order_id: str) -> str:\n    \"\"\"Look up the shipping status of an order.\"\"\"\n    ..."
+    },
+    "fields": {
+      "name": "function name by default; override with @tool(\"name\"); snake_case recommended",
+      "description": "docstring by default, or @tool(..., description=...)",
+      "args_schema": "Pydantic model or JSON schema; otherwise inferred from required type hints"
+    }
+  },
+  "tool_call": {
+    "example": {
+      "name": "lookup_order",
+      "args": {
+        "order_id": "A1"
+      },
+      "id": "123",
+      "type": "tool_call"
+    }
+  },
+  "tool_result": {
+    "example": {
+      "type": "tool",
+      "content": "Order A1 has shipped.",
+      "tool_call_id": "123",
+      "status": "success"
+    },
+    "error": "ToolMessage.status: Literal['success','error'] (default 'success'); docs pattern = middleware catches exception and returns ToolMessage(content='Tool failed: ...', tool_call_id=...). artifact: Any = None carries output NOT sent to the model."
+  },
+  "name_rule": null,
+  "schema_rules": [
+    "LangChain imposes no documented name/schema restriction itself; the bound provider's rules apply when tools are converted (e.g. OpenAI 64-char names).",
+    "Every tool call in history needs a matching ToolMessage (tool_call_id)."
+  ],
+  "sources": [
+    {
+      "url": "https://docs.langchain.com/oss/python/langchain/tools",
+      "what": "@tool, name/description/args_schema, ToolMessage conversion, error middleware"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/langchain-ai/langchain/master/libs/core/langchain_core/messages/tool.py",
+      "what": "ToolMessage fields (tool_call_id, type, artifact, status) and ToolCall TypedDict"
+    },
+    {
+      "url": "https://reference.langchain.com/python/langchain-core/messages/tool/ToolCall",
+      "what": "ToolCall field types"
+    }
+  ],
+  "checked_at": "2026-11-05",
+  "uncertain": [
+    "LangChain.js shapes not checked.",
+    "'Provider rules apply' is an inference, not a quoted LangChain statement."
+  ],
+  "check": {
+    "name": null,
+    "forbid_keys": [],
+    "why": "机器检查用：name 是导出后工具名要满足的正则（取各处文档里最严的那个），forbid_keys 是参数 schema 里不能出现的关键字；依据见 name_rule / schema_rules / sources"
+  }
+}

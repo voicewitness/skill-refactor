@@ -1,0 +1,91 @@
+{
+  "id": "openai-chat",
+  "name": "OpenAI Chat Completions function calling",
+  "tool_definition": {
+    "example": {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Retrieves current weather for the given location.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "location": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "location"
+          ],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    },
+    "fields": {
+      "type": "\"function\"",
+      "function.name": "required; a-z, A-Z, 0-9, underscores and dashes, max length 64",
+      "function.description": "optional; used by the model to choose when/how to call",
+      "function.parameters": "optional; JSON Schema object. Omitting it defines a function with an empty parameter list",
+      "function.strict": "optional, default false; strict schema adherence (Chat Completions is non-strict by default)"
+    }
+  },
+  "tool_call": {
+    "example": {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_12345xyz",
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "arguments": "{\"location\":\"Paris, France\"}"
+          }
+        }
+      ]
+    }
+  },
+  "tool_result": {
+    "example": {
+      "role": "tool",
+      "tool_call_id": "call_12345xyz",
+      "content": "{\"temperature_c\":18}"
+    },
+    "error": "No dedicated error flag documented; errors are conveyed in the tool message content (string or array of text parts)."
+  },
+  "name_rule": "^[a-zA-Z0-9_-]{1,64}$ (doc text: 'Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64')",
+  "schema_rules": [
+    "function.arguments is a JSON string; docs warn the model may produce invalid JSON or hallucinate params - validate before calling (non-strict).",
+    "Strict mode: additionalProperties must be false for every object in parameters.",
+    "Strict mode: all fields in properties must be listed in required; emulate optional with a null union, e.g. \"type\": [\"string\",\"null\"].",
+    "Strict subset types: string, number, boolean, integer, object, array, enum, anyOf. Supported: string pattern/format (e.g. date-time, email, uuid); number multipleOf/maximum/exclusiveMaximum/minimum/exclusiveMinimum; array minItems/maxItems; $defs + $ref; recursion via # or $defs.",
+    "Strict NOT supported: allOf, not, dependentRequired, dependentSchemas, if/then/else. Unsupported schema with strict: true -> error.",
+    "Strict: root must be an object and must not use anyOf.",
+    "Strict limits: up to 5000 object properties total, 10 levels of nesting; total chars of property names+definition names+enum values+const values <= 120,000; <= 1000 enum values total; a single string enum with >250 values capped at 15,000 chars."
+  ],
+  "sources": [
+    {
+      "url": "https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create",
+      "what": "tools[].function fields, name rule (max 64), tool_calls shape, role:tool message, omitting parameters"
+    },
+    {
+      "url": "https://developers.openai.com/api/docs/guides/function-calling",
+      "what": "strict mode rules (additionalProperties false, all required, null for optional); Chat Completions non-strict by default"
+    },
+    {
+      "url": "https://developers.openai.com/api/docs/guides/structured-outputs",
+      "what": "supported schema subset, unsupported keywords, root-object rule, size limits"
+    }
+  ],
+  "checked_at": "2026-11-05",
+  "uncertain": [
+    "Assistant message 'content: null' alongside tool_calls in the example is from memory; reference only confirmed tool_calls fields.",
+    "Name rule is quoted prose, regex form ^[a-zA-Z0-9_-]{1,64}$ is my translation (min length 1 assumed)."
+  ],
+  "check": {
+    "name": "^[a-zA-Z0-9_-]{1,64}$",
+    "forbid_keys": [],
+    "why": "机器检查用：name 是导出后工具名要满足的正则（取各处文档里最严的那个），forbid_keys 是参数 schema 里不能出现的关键字；依据见 name_rule / schema_rules / sources"
+  }
+}

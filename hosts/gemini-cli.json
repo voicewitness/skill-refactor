@@ -1,0 +1,22 @@
+{
+  "id": "gemini-cli",
+  "name": "Gemini CLI hooks",
+  "config": { "project": ".gemini/settings.json", "user": "~/.gemini/settings.json",
+    "shape": "{hooks:{<Event>:[{matcher, hooks:[{name, type:'command', command, timeout(ms)}]}]}}" },
+  "events": { "before_tool": "BeforeTool", "after_tool": "AfterTool", "prompt": "BeforeAgent", "stop": "AfterAgent", "session_start": "SessionStart" },
+  "tools": { "shell": { "names": ["run_shell_command"], "text": "tool_input.command" }, "write": { "names": ["write_file", "replace"], "text": "tool_input.file_path" } },
+  "input_common": ["session_id", "transcript_path", "cwd", "hook_event_name", "timestamp", "tool_name", "tool_input"],
+  "decisions": {
+    "deny": "exit 0 + {decision:'deny', reason}；或 exit 2 + stderr",
+    "remind": "BeforeTool 没有不拦截的注入口：remind 挂到 AfterTool，用 {hookSpecificOutput:{additionalContext}}（追加到工具结果）",
+    "continue": "AfterAgent：{decision:'deny', reason} 拒收这次回答并以 reason 重试；输入带 stop_hook_active"
+  },
+  "matcher": "工具事件是正则；生命周期事件是精确串；* / 空匹配全部",
+  "trust": "项目级 hook 按 name+command 指纹，变了就当不受信任，运行前提示",
+  "env": { "project_dir": "GEMINI_PROJECT_DIR（CLAUDE_PROJECT_DIR 作兼容别名）" },
+  "sources": [ { "url": "https://geminicli.com/docs/hooks/reference/", "what": "事件名、stdin 字段、decision deny/block、additionalContext 适用事件、AfterAgent 重试、matcher" },
+               { "url": "https://geminicli.com/docs/hooks/", "what": "配置层级、形状、信任指纹" },
+               { "url": "https://geminicli.com/docs/reference/tools/", "what": "run_shell_command / write_file / replace 的参数键" } ],
+  "checked_at": "2026-11-05",
+  "uncertain": [ "文档横幅写 2026-06-18 起 Gemini CLI 被 Antigravity CLI 取代，后者 hook 是否兼容未核", "settings 里是否还需全局开关未写明" ]
+}

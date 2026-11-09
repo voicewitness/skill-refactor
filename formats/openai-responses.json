@@ -1,0 +1,80 @@
+{
+  "id": "openai-responses",
+  "name": "OpenAI Responses API function tools",
+  "tool_definition": {
+    "example": {
+      "type": "function",
+      "name": "get_weather",
+      "description": "Retrieves current weather for the given location.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    "fields": {
+      "type": "\"function\" (flat, no nested 'function' object)",
+      "name": "required",
+      "description": "optional, nullable",
+      "parameters": "required in the reference schema but nullable; JSON Schema object",
+      "strict": "required in reference schema but nullable; guide says omitting strict on Responses may fall back to non-strict",
+      "output_schema": "optional, nullable; JSON schema describing the JSON value encoded in string outputs",
+      "async / defer_loading / allowed_callers": "optional (allowed_callers values: direct | programmatic)"
+    }
+  },
+  "tool_call": {
+    "example": {
+      "type": "function_call",
+      "id": "fc_12345xyz",
+      "call_id": "call_12345xyz",
+      "name": "get_weather",
+      "arguments": "{\"location\":\"Paris, France\"}",
+      "status": "completed"
+    }
+  },
+  "tool_result": {
+    "example": {
+      "type": "function_call_output",
+      "call_id": "call_12345xyz",
+      "output": "{\"temperature_c\":18}"
+    },
+    "error": "No dedicated error flag documented; output is a string (typically JSON) or an array of text/image/file content - put the error text there."
+  },
+  "name_rule": null,
+  "schema_rules": [
+    "Same strict-mode rules as Chat Completions (shared function-calling + structured-outputs guides): additionalProperties:false on every object, every property in required, optional via null union, root object without anyOf, same keyword subset and size limits.",
+    "Tools inside a namespace (tool search) have documented pattern ^(?![\\s\\S]*[\\r\\n])[a-zA-Z0-9_.-]+$, length 1-128; namespace pattern ^[a-zA-Z0-9_-]+$, length 1-64."
+  ],
+  "sources": [
+    {
+      "url": "https://developers.openai.com/api/docs/guides/function-calling",
+      "what": "flat tool shape, function_call and function_call_output examples, strict rules"
+    },
+    {
+      "url": "https://developers.openai.com/api/reference/resources/responses/methods/create",
+      "what": "Function tool fields, FunctionCall/FunctionCallOutput item fields, namespace name patterns"
+    },
+    {
+      "url": "https://developers.openai.com/api/docs/guides/structured-outputs",
+      "what": "schema subset and limits"
+    }
+  ],
+  "checked_at": "2026-11-05",
+  "uncertain": [
+    "Top-level Responses function 'name' has no pattern/length listed in the reference portion read (first 100k of 558k chars); assume the Chat Completions 64-char rule only as a safe lower bound - unconfirmed.",
+    "Whether strict defaults to true when omitted on Responses: guide only says omitting may fall back to non-strict."
+  ],
+  "check": {
+    "name": null,
+    "forbid_keys": [],
+    "why": "机器检查用：name 是导出后工具名要满足的正则（取各处文档里最严的那个），forbid_keys 是参数 schema 里不能出现的关键字；依据见 name_rule / schema_rules / sources"
+  }
+}

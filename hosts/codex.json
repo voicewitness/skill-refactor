@@ -1,0 +1,20 @@
+{
+  "id": "codex",
+  "name": "OpenAI Codex CLI hooks",
+  "config": { "project": ".codex/hooks.json", "user": "~/.codex/hooks.json",
+    "shape": "{hooks:{<Event>:[{matcher, hooks:[{type:'command', command, timeout}]}]}}（也可写在 config.toml 的 [[hooks.<Event>]]）" },
+  "events": { "before_tool": "PreToolUse", "after_tool": "PostToolUse", "prompt": "UserPromptSubmit", "stop": "Stop", "session_start": "SessionStart" },
+  "tools": { "shell": { "names": ["Bash"], "text": "tool_input.command" }, "write": { "names": ["apply_patch", "Edit", "Write"], "text": "tool_input.command（补丁正文，路径从 *** Add/Update File: 行取）" } },
+  "input_common": ["session_id", "transcript_path", "cwd", "hook_event_name", "model", "turn_id", "tool_name", "tool_use_id", "tool_input"],
+  "decisions": {
+    "deny": "{hookSpecificOutput:{hookEventName:'PreToolUse', permissionDecision:'deny', permissionDecisionReason}}；或 exit 2 + stderr；不支持 ask",
+    "remind": "{hookSpecificOutput:{hookEventName, additionalContext}}",
+    "continue": "Stop：{decision:'block', reason}，reason 作为新一轮的提示"
+  },
+  "matcher": "正则；空 / * 匹配全部；UserPromptSubmit / Stop 忽略 matcher",
+  "trust": "非托管的 hook 要先在 /hooks 里信任；定义一变（按哈希）就要重新信任；项目 .codex/ 层要被信任才加载",
+  "env": {},
+  "sources": [ { "url": "https://developers.openai.com/codex/hooks", "what": "308 到 learn.chatgpt.com/docs/hooks；配置位置、JSON 形状、事件名、Bash/apply_patch 的 tool_input.command、permissionDecision deny、additionalContext、Stop decision block、信任机制" } ],
+  "checked_at": "2026-11-05",
+  "uncertain": [ "Stop 用 exit 2 是否等同 decision block 来自摘要，非逐字原文", "apply_patch 没有独立的文件路径字段，只能解析补丁正文" ]
+}

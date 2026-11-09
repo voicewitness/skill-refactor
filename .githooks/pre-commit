@@ -1,0 +1,3 @@
+#!/bin/sh
+# 提交前泄漏扫描。私有词表 LEAKSCAN_DENYLIST、私有目录 LEAKSCAN_PRIVATE_DIRS 由本机环境提供（都不在仓库里）。
+node scripts/leakscan.mjs || { echo "leakscan 未通过，提交已拦下"; exit 1; }

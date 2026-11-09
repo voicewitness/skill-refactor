@@ -1,0 +1,99 @@
+{
+  "id": "anthropic",
+  "name": "Anthropic Messages API (client tools)",
+  "tool_definition": {
+    "example": {
+      "name": "get_weather",
+      "description": "Get the current weather in a given location",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "City and state"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      }
+    },
+    "fields": {
+      "name": "required; must match ^[a-zA-Z0-9_-]{1,128}$",
+      "description": "detailed plain-text description (docs: 'most important factor'; aim for 3-4+ sentences)",
+      "input_schema": "required; JSON Schema object for the parameters",
+      "input_examples": "optional; array of example inputs, each must validate against input_schema (invalid -> 400); not supported on server tools or computer/browser toolsets",
+      "strict": "optional; true = grammar-constrained sampling, input guaranteed to match input_schema and name always valid",
+      "cache_control / defer_loading / allowed_callers": "optional properties listed in Tool reference (not detailed here)"
+    }
+  },
+  "tool_call": {
+    "example": {
+      "role": "assistant",
+      "stop_reason": "tool_use",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'll check the weather."
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_01A09q90qw90lq917835lq9",
+          "name": "get_weather",
+          "input": {
+            "location": "San Francisco, CA"
+          }
+        }
+      ]
+    }
+  },
+  "tool_result": {
+    "example": {
+      "role": "user",
+      "content": [
+        {
+          "type": "tool_result",
+          "tool_use_id": "toolu_01A09q90qw90lq917835lq9",
+          "content": "15 degrees"
+        }
+      ]
+    },
+    "error": "Same tool_result block with \"is_error\": true and the error message in content. content is optional and may be a string or an array of text/image/document/search_result blocks. tool_result blocks must immediately follow the assistant tool_use turn and must come FIRST in the user message content (text only after them, else 400)."
+  },
+  "name_rule": "^[a-zA-Z0-9_-]{1,128}$",
+  "schema_rules": [
+    "Non-strict: any JSON Schema object for input_schema (no subset documented on define-tools page).",
+    "Strict (strict: true) / structured outputs subset: supported = basic types object/array/string/integer/number/boolean/null, enum (primitive values only), const, anyOf, allOf (not with $ref), $ref/$def/definitions (no external $ref), default, required, additionalProperties (must be false for objects), string formats date-time/time/date/duration/email/hostname/uri/ipv4/ipv6/uuid, array minItems only 0 or 1.",
+    "Strict NOT supported: recursive schemas, complex types in enums, external $ref, numeric constraints (minimum/maximum/multipleOf), string minLength/maxLength, array constraints beyond minItems 0/1, additionalProperties other than false. Unsupported feature -> 400.",
+    "Strict complexity limits per request (combined across all strict schemas): max 20 strict tools; max 24 optional parameters (any property not in required); max 16 parameters using union types (anyOf or type arrays like [\"string\",\"null\"]).",
+    "Strict mode does NOT require all properties to be in required (docs examples have optional properties); optional ones count toward the 24 limit."
+  ],
+  "sources": [
+    {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "what": "tool definition fields, name regex, input_examples rules, tool_use response example"
+    },
+    {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "what": "tool_use block fields, tool_result fields, is_error, ordering requirements, allowed content block types"
+    },
+    {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use",
+      "what": "strict: true semantics and guarantees"
+    },
+    {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "what": "JSON Schema limitations and complexity limits shared by strict tool use"
+    }
+  ],
+  "checked_at": "2026-11-05",
+  "uncertain": [
+    "Exact semantics of cache_control/defer_loading/allowed_callers not read (Tool reference page not fetched).",
+    "Whether the top-level input_schema must have type 'object' was not stated verbatim on the fetched pages (all examples use it)."
+  ],
+  "check": {
+    "name": "^[a-zA-Z0-9_-]{1,128}$",
+    "forbid_keys": [],
+    "why": "机器检查用：name 是导出后工具名要满足的正则（取各处文档里最严的那个），forbid_keys 是参数 schema 里不能出现的关键字；依据见 name_rule / schema_rules / sources"
+  }
+}

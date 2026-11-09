@@ -1,0 +1,11 @@
+{
+  "name": "skill-refactor",
+  "version": "0.1.0",
+  "description": "Refactor an agent skill into a tool-call-like command protocol, a single-source-of-truth SQLite store, and a pull-driven loop; plus a CLI scaffold, a plugin-based local service, and a registry of agent tool-call formats.",
+  "type": "module",
+  "bin": { "skr": "bin/skr.mjs" },
+  "engines": { "node": ">=22.5" },
+  "scripts": { "test": "node --test test/*.test.mjs" },
+  "license": "Apache-2.0",
+  "files": ["bin", "core", "plugins", "formats", "hosts", "skill", "docs", "README.md", "LICENSE"]
+}
