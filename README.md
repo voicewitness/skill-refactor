@@ -48,12 +48,6 @@ target add → analyze（盘点）→ flow（登记流程，带依据）→ stat
 
 `$SKR_HOME`（缺省 `~/.skill-refactor`）：`skr.db` 是正本；`targets/<对象>/` 下的 `analysis.md` `plan.md` `protocol.json` `schema.sql` 是产物，能从库里重新生成。
 
-## 参与贡献
-
-提交前跑泄漏扫描：`git config core.hooksPath .githooks`（一次就好），之后每次提交都会先跑 `node scripts/leakscan.mjs`，扫描不过就拦下。
-仓库里只带通用规则；你自己组织的内部词表、私有目录，用环境变量 LEAKSCAN_DENYLIST / LEAKSCAN_PRIVATE_DIRS 指给它（放在仓库外，不要提交）。
-测试：`npm test`。
-
 ## 许可
 
 Apache-2.0
